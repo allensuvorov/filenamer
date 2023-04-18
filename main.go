@@ -10,6 +10,7 @@ import (
 
 func main() {
 	reader := bufio.NewReader(os.Stdin)
+	fmt.Println("Enter LeetCode problem name to produce a nicely formatted file name: ")
 	if text, err := reader.ReadString('\n'); err == nil {
 		fmt.Println(formatFileName(text))
 	}
