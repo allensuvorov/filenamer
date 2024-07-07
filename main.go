@@ -57,10 +57,7 @@ func underScore(s string) string {
 }
 
 func isSymbol(r rune) bool {
-	if unicode.IsDigit(r) || unicode.IsLetter(r) {
-		return false
-	}
-	return true
+	return !unicode.IsDigit(r) && !unicode.IsLetter(r)
 }
 
 func copyToClipboard(text string) error {
