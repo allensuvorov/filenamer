@@ -4,6 +4,8 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"os/exec"
+	"runtime"
 	"strings"
 	"unicode"
 )
@@ -12,7 +14,14 @@ func main() {
 	reader := bufio.NewReader(os.Stdin)
 	fmt.Println("Enter LeetCode problem name to produce a nicely formatted file name: ")
 	if text, err := reader.ReadString('\n'); err == nil {
-		fmt.Println(formatFileName(text))
+		formattedFileName := formatFileName(text)
+		fmt.Println(formattedFileName)
+		err := copyToClipboard(formattedFileName)
+		if err != nil {
+			fmt.Println("Failed to copy to clipboard:", err)
+		} else {
+			fmt.Println("File name copied to clipboard.")
+		}
 	}
 }
 
@@ -52,4 +61,39 @@ func isSymbol(r rune) bool {
 		return false
 	}
 	return true
+}
+
+func copyToClipboard(text string) error {
+	var cmd *exec.Cmd
+
+	switch runtime.GOOS {
+	case "darwin":
+		cmd = exec.Command("pbcopy")
+	case "linux":
+		cmd = exec.Command("xclip", "-selection", "clipboard")
+	case "windows":
+		cmd = exec.Command("cmd", "/c", "clip")
+	default:
+		return fmt.Errorf("unsupported platform")
+	}
+
+	in, err := cmd.StdinPipe()
+	if err != nil {
+		return err
+	}
+
+	if err := cmd.Start(); err != nil {
+		return err
+	}
+
+	_, err = in.Write([]byte(text))
+	if err != nil {
+		return err
+	}
+
+	if err := in.Close(); err != nil {
+		return err
+	}
+
+	return cmd.Wait()
 }
