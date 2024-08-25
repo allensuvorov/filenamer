@@ -1,9 +1,7 @@
 package main
 
 import (
-	"bufio"
 	"fmt"
-	"os"
 	"os/exec"
 	"runtime"
 	"strings"
@@ -11,18 +9,48 @@ import (
 )
 
 func main() {
-	reader := bufio.NewReader(os.Stdin)
-	fmt.Println("Enter LeetCode problem name to produce a nicely formatted file name: ")
-	if text, err := reader.ReadString('\n'); err == nil {
-		formattedFileName := formatFileName(text)
-		fmt.Println(formattedFileName)
-		err := copyToClipboard(formattedFileName)
-		if err != nil {
-			fmt.Println("Failed to copy to clipboard:", err)
-		} else {
-			fmt.Println("File name copied to clipboard.")
-		}
+	// Read from clipboard
+	clipboardText, err := readFromClipboard()
+	if err != nil {
+		fmt.Println("Error reading from clipboard:", err)
+		return
 	}
+
+	if clipboardText == "" {
+		fmt.Println("Error - empty clipboard. Copy the text to clipboard and run this app again.")
+		return
+	}
+
+	formattedFileName := formatFileName(clipboardText)
+	fmt.Println(formattedFileName)
+	err = copyToClipboard(formattedFileName)
+	if err != nil {
+		fmt.Println("Failed to copy to clipboard:", err)
+	} else {
+		fmt.Println("File name copied to clipboard.")
+	}
+}
+
+func readFromClipboard() (string, error) {
+	var cmd *exec.Cmd
+
+	switch runtime.GOOS {
+	case "darwin":
+		cmd = exec.Command("pbpaste")
+	case "linux":
+		cmd = exec.Command("xclip", "-selection", "clipboard", "-output")
+	case "windows":
+		cmd = exec.Command("cmd", "/c", "clip")
+	default:
+		return "", fmt.Errorf("unsupported platform")
+	}
+
+	out, err := cmd.Output()
+	if err != nil {
+		return "", err
+	}
+
+	return strings.TrimSpace(string(out)), nil
 }
 
 func formatFileName(s string) string {
