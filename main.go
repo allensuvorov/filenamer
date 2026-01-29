@@ -8,6 +8,8 @@ import (
 	"unicode"
 )
 
+// TODO, check if string is already a valid file name.
+
 func main() {
 	// Read from clipboard
 	clipboardText, err := readFromClipboard()
